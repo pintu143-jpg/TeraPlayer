@@ -35,7 +35,9 @@ app.use((req, res, next) => {
 
 // Setup paths
 const binDir = path.join(__dirname, 'bin');
-const ytdlpPath = path.join(binDir, 'yt-dlp.exe');
+const isWindows = process.platform === 'win32';
+const ytdlpFilename = isWindows ? 'yt-dlp.exe' : 'yt-dlp';
+const ytdlpPath = path.join(binDir, ytdlpFilename);
 const downloadsDir = path.join(__dirname, 'downloads');
 
 // Ensure directories exist
@@ -61,16 +63,16 @@ const INVIDIOUS_INSTANCES = [
   'https://invidious.projectsegfaut.im'
 ];
 
-// 1. Auto-download yt-dlp.exe on startup if missing
+// 1. Auto-download yt-dlp on startup if missing
 function ensureYtdlp() {
   return new Promise((resolve, reject) => {
     if (fs.existsSync(ytdlpPath)) {
-      console.log(`[Startup] yt-dlp.exe verified at: ${ytdlpPath}`);
+      console.log(`[Startup] ${ytdlpFilename} verified at: ${ytdlpPath}`);
       return resolve(ytdlpPath);
     }
 
-    console.log('[Startup] yt-dlp.exe is missing. Downloading from official GitHub release...');
-    const url = 'https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp.exe';
+    console.log(`[Startup] ${ytdlpFilename} is missing. Downloading from official GitHub release...`);
+    const url = `https://github.com/yt-dlp/yt-dlp/releases/latest/download/${ytdlpFilename}`;
     const tempFile = ytdlpPath + '.tmp';
     const file = fs.createWriteStream(tempFile);
 
@@ -82,7 +84,7 @@ function ensureYtdlp() {
         }
 
         if (response.statusCode !== 200) {
-          reject(new Error(`Failed to download yt-dlp.exe. HTTP Status: ${response.statusCode}`));
+          reject(new Error(`Failed to download ${ytdlpFilename}. HTTP Status: ${response.statusCode}`));
           return;
         }
 
@@ -91,7 +93,16 @@ function ensureYtdlp() {
         file.on('finish', () => {
           file.close(() => {
             fs.renameSync(tempFile, ytdlpPath);
-            console.log('[Startup] yt-dlp.exe downloaded successfully.');
+            // On Linux, make the binary executable
+            if (!isWindows) {
+              try {
+                fs.chmodSync(ytdlpPath, '755');
+                console.log('[Startup] Set executable permissions (chmod 755) on yt-dlp');
+              } catch (chmodErr) {
+                console.warn('[Startup] Failed to set chmod 755:', chmodErr);
+              }
+            }
+            console.log(`[Startup] ${ytdlpFilename} downloaded successfully.`);
             resolve(ytdlpPath);
           });
         });
