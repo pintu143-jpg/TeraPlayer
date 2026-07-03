@@ -10,7 +10,9 @@ import {
   Shield, Zap, Users, HelpCircle, ChevronDown, Tv
 } from 'lucide-react';
 
-const API_BASE = 'https://api.teraplayer.xyz';
+const API_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+  ? 'http://localhost:5000'
+  : 'https://api.teraplayer.xyz';
 
 export default function App() {
   const [darkMode, setDarkMode] = useState(false);
