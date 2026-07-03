@@ -466,36 +466,6 @@ app.post('/api/resolve', async (req, res) => {
       });
     }
 
-      if (customRes.error && (customRes.error.includes('backend API key') || customRes.error.includes('Invalid token'))) {
-        return res.json({
-          success: false,
-          platform: 'diskwala',
-          message: `Your custom DiskWala API token is valid, but the API returned: "${customRes.error}".`,
-          helpTitle: 'DiskWala Custom API Key Configuration Error',
-          helpSteps: [
-            'Log into your diskwala.litedns.xyz account/dashboard.',
-            'Ensure you have assigned/configured your DiskWala developer API key (or session keys) inside your litedns panel.',
-            'Make sure your token is active and has credits/usage allowed.',
-            'Try pasting the DiskWala link here again once setup is complete.'
-          ]
-        });
-      }
-
-      console.log(`Automated DiskWala fallback resolution failed: ${flowRes.message}. Falling back to manual instructions.`);
-      return res.json({
-        success: false,
-        platform: 'diskwala',
-        message: 'DiskWala requires ad-views and creator support. Automated resolution failed. Please follow these steps to play:',
-        helpTitle: 'DiskWala Streaming Guide',
-        helpSteps: [
-          'Open the DiskWala link in a new browser tab.',
-          'Solve any captchas or view the required page to load their player.',
-          'Inspect the page or use a network sniffer to find the underlying MP4 or stream URL.',
-          'Paste the resolved direct link here.'
-        ]
-      });
-    }
-
     if (platform === 'youtube') {
       const videoId = extractYoutubeId(url);
       if (!videoId) {
