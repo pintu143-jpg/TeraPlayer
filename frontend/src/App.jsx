@@ -100,7 +100,36 @@ export default function App() {
           platform: data.platform
         });
       } else {
-        if (data.platform === 'terabox' || data.platform === 'diskwala') {
+        if (data.requiresSignature && data.platform === 'diskwala') {
+          setIsResolving(true);
+          setResolutionError(null);
+          try {
+            const { signDiskwalaRequest } = await import('./utils/diskwalaSigner');
+            const { cryptogram, ts } = await signDiskwalaRequest(data.fileId);
+
+            const secureRes = await fetch(`${API_BASE}/api/diskwala/secure-resolve`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ fileId: data.fileId, cryptogram, ts })
+            });
+            const secureData = await secureRes.json();
+            if (secureRes.ok && secureData.success) {
+              setActiveVideo({
+                url: url,
+                streamUrl: secureData.streamUrl,
+                title: secureData.title,
+                platform: 'diskwala'
+              });
+            } else {
+              setResolutionError(secureData.message || 'Failed to securely resolve DiskWala link.');
+            }
+          } catch (signErr) {
+            console.error('[Frontend Sign] Error:', signErr);
+            setResolutionError('Failed to generate local security signature for DiskWala. Please try again.');
+          } finally {
+            setIsResolving(false);
+          }
+        } else if (data.platform === 'terabox' || data.platform === 'diskwala') {
           setManualCard(data);
         } else {
           setResolutionError(data.message || 'An error occurred while resolving this link.');

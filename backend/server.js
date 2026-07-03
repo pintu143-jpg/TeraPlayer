@@ -9,6 +9,7 @@ const axios = require('axios');
 
 const {
   extractGDriveId,
+  extractDiskwalaId,
   getGDriveTitle,
   resolveGDrive,
   detectPlatform,
@@ -439,20 +440,31 @@ app.post('/api/resolve', async (req, res) => {
         });
       }
 
-      console.log(`Custom DiskWala API failed (${customRes.error || 'unknown error'}). Attempting automated fallback resolution: ${url}`);
-      const flowRes = await resolveViaFlow(url);
-
-      if (flowRes.success) {
-        console.log(`Successfully resolved DiskWala via fallback: ${flowRes.title}`);
+      console.log(`Custom DiskWala API failed (${customRes.error || 'unknown error'}). Using browser signature resolution.`);
+      const fileId = extractDiskwalaId(url);
+      if (fileId) {
         return res.json({
-          success: true,
+          success: false,
           platform: 'diskwala',
-          streamUrl: flowRes.streamUrl,
-          title: flowRes.title,
-          thumbnail: flowRes.thumbnail,
-          size: flowRes.size
+          requiresSignature: true,
+          fileId
         });
       }
+
+      console.log(`Automated DiskWala fallback resolution failed: could not parse ID. Falling back to manual instructions.`);
+      return res.json({
+        success: false,
+        platform: 'diskwala',
+        message: 'Automated DiskWala resolution failed. Please follow the instructions to stream manually:',
+        helpTitle: 'DiskWala Streaming Guide',
+        helpSteps: [
+          'Open the DiskWala link in a new browser tab.',
+          'Solve any captchas or view the required page to load their player.',
+          'Inspect the page or use a network sniffer to find the underlying MP4 or stream URL.',
+          'Paste the resolved direct link here.'
+        ]
+      });
+    }
 
       if (customRes.error && (customRes.error.includes('backend API key') || customRes.error.includes('Invalid token'))) {
         return res.json({
@@ -550,6 +562,57 @@ app.post('/api/resolve', async (req, res) => {
   }
 });
 
+// API: Secure DiskWala Resolve using Frontend Cryptogram
+app.post('/api/diskwala/secure-resolve', async (req, res) => {
+  const { fileId, cryptogram, ts } = req.body;
+  if (!fileId || !cryptogram || !ts) {
+    return res.status(400).json({ success: false, message: 'Missing signing parameters' });
+  }
+
+  try {
+    console.log(`[DiskWala Secure Resolve] Fetching direct stream for file: ${fileId}`);
+    const response = await axios.post('https://ddudapidd.diskwala.com/api/v1/file/temp_info', {
+      id: fileId
+    }, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Content-Type': 'application/json',
+        'Origin': 'https://www.diskwala.com',
+        'Referer': 'https://www.diskwala.com/',
+        'Appicrypt-Ts': ts,
+        'Appicrypt': cryptogram
+      },
+      timeout: 15000
+    });
+
+    if (response.data && response.data.status && response.data.response) {
+      const fileInfo = response.data.response;
+      const streamUrl = fileInfo.download_link;
+      const title = fileInfo.file_name || 'DiskWala Video';
+
+      console.log(`[DiskWala Secure Resolve] Successfully resolved secure streaming URL: ${title}`);
+      return res.json({
+        success: true,
+        streamUrl,
+        title
+      });
+    } else {
+      console.warn('[DiskWala Secure Resolve] Rejected by API:', response.data);
+      return res.status(400).json({
+        success: false,
+        message: response.data.message || 'DiskWala API rejected request'
+      });
+    }
+  } catch (err) {
+    console.error('[DiskWala Secure Resolve] Failed:', err.message);
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to resolve secure DiskWala link',
+      error: err.message
+    });
+  }
+});
+
 // API: Download Video File (using yt-dlp)
 app.post('/api/download', async (req, res) => {
   const { url, title } = req.body;
@@ -559,7 +622,7 @@ app.post('/api/download', async (req, res) => {
 
   const downloadId = 'dl_' + Date.now();
   const safeTitle = (title || 'Video').replace(/[\\/:*?"<>|]/g, '_');
-  const outputPattern = path.join(downloadsDir, `${safeTitle}-%(id)s.%(ext)s`);
+  const outputPattern = path.join(downloadsDir, `${safeTitle}-${downloadId}.%(ext)s`);
 
   console.log(`[Download] Starting background download for ID ${downloadId}: ${url}`);
 

@@ -17,6 +17,11 @@ function extractGDriveId(url) {
   return null;
 }
 
+function extractDiskwalaId(url) {
+  const match = url.match(/\/app\/([a-zA-Z0-9]+)/);
+  return match ? match[1] : null;
+}
+
 async function getGDriveTitle(fileId) {
   try {
     const url = `https://drive.google.com/file/d/${fileId}/view`;
@@ -332,6 +337,7 @@ async function resolveViaFlow(videoUrl) {
 
 module.exports = {
   extractGDriveId,
+  extractDiskwalaId,
   getGDriveTitle,
   resolveGDrive,
   detectPlatform,
