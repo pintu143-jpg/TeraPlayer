@@ -279,7 +279,7 @@ export default function App() {
       <div className="absolute bottom-[10%] left-[20%] w-[400px] h-[400px] bg-fuchsia-600/5 dark:bg-fuchsia-500/5 rounded-full blur-[110px] pointer-events-none animate-slowFloat" />
 
       {/* Navigation Header */}
-      <Header darkMode={darkMode} setDarkMode={setDarkMode} />
+      <Header darkMode={darkMode} setDarkMode={setDarkMode} onHome={resetAllState} />
 
       {/* Main Content Area */}
       <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">

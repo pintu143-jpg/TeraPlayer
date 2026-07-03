@@ -1,7 +1,7 @@
 import React from 'react';
 import { Sun, Moon, Play } from 'lucide-react';
 
-export default function Header({ darkMode, setDarkMode }) {
+export default function Header({ darkMode, setDarkMode, onHome }) {
   const toggleDarkMode = () => {
     const nextMode = !darkMode;
     setDarkMode(nextMode);
@@ -19,8 +19,11 @@ export default function Header({ darkMode, setDarkMode }) {
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
         
         {/* Brand Logo */}
-        <div className="flex items-center gap-2.5">
-          <div className="relative flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-tr from-violet-600 via-indigo-500 to-indigo-600 shadow-lg shadow-violet-500/30 group cursor-pointer hover:scale-105 transition-all duration-300 overflow-hidden border border-white/10">
+        <div 
+          onClick={onHome}
+          className="flex items-center gap-2.5 cursor-pointer select-none hover:opacity-90 active:scale-95 transition-all"
+        >
+          <div className="relative flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-tr from-violet-600 via-indigo-500 to-indigo-600 shadow-lg shadow-violet-500/30 group hover:scale-105 transition-all duration-300 overflow-hidden border border-white/10">
             {/* Ambient inner radial glow */}
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.18)_0%,transparent_70%)] group-hover:scale-150 transition-transform duration-700 pointer-events-none" />
             <svg viewBox="0 0 24 24" className="h-5.5 w-5.5 text-white z-10" fill="none" xmlns="http://www.w3.org/2000/svg">
