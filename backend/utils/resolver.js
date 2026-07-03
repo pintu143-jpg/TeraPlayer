@@ -247,7 +247,15 @@ async function resolveViaCustomApis(url, platform) {
 
 async function resolveViaFlow(videoUrl) {
   try {
-    const homepageRes = await axios.get('https://flowvideoplayer.com', {
+    const isDiskwala = videoUrl.toLowerCase().includes('diskwala');
+    const targetHost = isDiskwala 
+      ? 'https://diskwaladownloader.flowvideoplayer.com'
+      : 'https://flowvideoplayer.com';
+    const apiPath = isDiskwala
+      ? '/searchVideo'
+      : '/telegram/bot/search/video';
+
+    const homepageRes = await axios.get(targetHost, {
       headers: {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
       },
@@ -262,7 +270,7 @@ async function resolveViaFlow(videoUrl) {
     const setCookie = homepageRes.headers['set-cookie'] || [];
     const cookieHeader = setCookie.map(c => c.split(';')[0]).join('; ');
 
-    const apiRes = await axios.post('https://flowvideoplayer.com/telegram/bot/search/video', {
+    const apiRes = await axios.post(`${targetHost}${apiPath}`, {
       url: videoUrl
     }, {
       headers: {
@@ -270,21 +278,44 @@ async function resolveViaFlow(videoUrl) {
         'Content-Type': 'application/json',
         'X-CSRF-Token': csrfToken,
         'Cookie': cookieHeader,
-        'Referer': 'https://flowvideoplayer.com/',
-        'Origin': 'https://flowvideoplayer.com'
+        'Referer': `${targetHost}/`,
+        'Origin': targetHost
       },
       timeout: 25000
     });
 
-    if (apiRes.data && apiRes.data.status && apiRes.data.response && apiRes.data.response.length > 0) {
-      const fileData = apiRes.data.response[0];
-      return {
-        success: true,
-        streamUrl: fileData.fast_stream_url,
-        title: fileData.file_name,
-        thumbnail: fileData.thumbnail,
-        size: fileData.file_size
-      };
+    if (isDiskwala) {
+      if (apiRes.data && apiRes.data.status && apiRes.data.response && apiRes.data.response.length > 0) {
+        const fileData = apiRes.data.response[0];
+        // Extract the R2 bucket origin from the thumbnail
+        let streamUrl = '';
+        if (fileData.thumbnail) {
+          try {
+            const u = new URL(fileData.thumbnail);
+            streamUrl = `${u.protocol}//${u.host}/${fileData.file_name}`;
+          } catch (e) {
+            console.error('Failed to parse thumbnail URL for DiskWala:', e.message);
+          }
+        }
+        return {
+          success: true,
+          streamUrl: streamUrl,
+          title: fileData.file_name,
+          thumbnail: fileData.thumbnail,
+          size: fileData.file_size
+        };
+      }
+    } else {
+      if (apiRes.data && apiRes.data.status && apiRes.data.response && apiRes.data.response.length > 0) {
+        const fileData = apiRes.data.response[0];
+        return {
+          success: true,
+          streamUrl: fileData.fast_stream_url,
+          title: fileData.file_name,
+          thumbnail: fileData.thumbnail,
+          size: fileData.file_size
+        };
+      }
     }
 
     return {
