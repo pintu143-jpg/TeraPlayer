@@ -13,7 +13,8 @@ export async function signDiskwalaRequest(fileId) {
   if (!appicryptModule) {
     console.log('[DiskWala Signer] Loading AppiCrypt WASM module...');
     // Dynamically import the browser ESM module
-    appicryptModule = await import(/* @vite-ignore */ '/appicrypt-web-f-0_1_216.js');
+    const wasmUrl = `${window.location.origin}/appicrypt-web-f-0_1_216.js`;
+    appicryptModule = await import(/* @vite-ignore */ wasmUrl);
     await appicryptModule.setMagicFile(magicToken);
     // Give it a tiny delay to ensure worker/WASM compiles fully
     await new Promise(resolve => setTimeout(resolve, 800));
