@@ -131,7 +131,7 @@ export default function App() {
       const response = await fetch(`${API_BASE}/api/download`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ url: video.url, title: video.title })
+        body: JSON.stringify({ url: video.streamUrl || video.url, title: video.title })
       });
       const data = await response.json();
       if (response.ok && data.success) {
