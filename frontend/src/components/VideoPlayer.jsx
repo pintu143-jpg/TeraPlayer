@@ -865,20 +865,30 @@ export default function VideoPlayer({
           {/* Ad Container Box */}
           <div 
             onClick={handleAdClick}
-            className="w-[300px] h-[250px] bg-slate-900 border border-white/10 rounded-2xl flex flex-col items-center justify-center relative overflow-hidden shadow-2xl hover:border-violet-500/30 transition-all cursor-pointer group"
+            className="w-[300px] h-[180px] md:w-[480px] md:h-[270px] bg-slate-900 border border-white/10 rounded-2xl flex flex-col items-center justify-center relative overflow-hidden shadow-2xl hover:border-violet-500/40 transition-all cursor-pointer group"
           >
-            <div className="flex flex-col items-center justify-center p-6 text-center">
-              <Tv className="h-12 w-12 text-violet-500 animate-pulse mb-3" />
-              <span className="text-sm font-bold text-white group-hover:text-violet-400 transition-colors">
-                Click here to visit our sponsor
+            {/* Loop video for realistic video ad experience */}
+            <video
+              src="https://assets.mixkit.co/videos/preview/mixkit-abstract-laser-lights-background-loop-41851-large.mp4"
+              autoPlay
+              loop
+              muted
+              playsInline
+              className="absolute inset-0 w-full h-full object-cover rounded-2xl opacity-60 group-hover:scale-105 transition-all duration-700"
+            />
+            
+            {/* Centered CTA text over video */}
+            <div className="absolute inset-0 bg-slate-950/40 hover:bg-slate-950/20 transition-all flex flex-col items-center justify-center p-6 text-center z-10">
+              <span className="bg-violet-600 text-white font-bold text-xs px-3 py-1 rounded-full uppercase tracking-wider mb-2.5 shadow-lg shadow-violet-500/30 animate-pulse">
+                Click to Open Advertisement
               </span>
-              <span className="text-xs text-slate-400 mt-2">
-                Supporting our site helps keep streaming free!
+              <span className="text-xs md:text-sm font-semibold text-white drop-shadow-md">
+                Visit our sponsor to unlock high-speed stream
               </span>
             </div>
-            
+
             {/* Click overlay */}
-            <div className="absolute inset-0 bg-transparent" />
+            <div className="absolute inset-0 bg-transparent z-20" />
           </div>
 
           {/* Timer / Skip Button */}
