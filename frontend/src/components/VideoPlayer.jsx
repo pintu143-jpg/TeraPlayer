@@ -869,7 +869,7 @@ export default function VideoPlayer({
           >
             {/* Loop video for realistic video ad experience */}
             <video
-              src="https://assets.mixkit.co/videos/preview/mixkit-abstract-laser-lights-background-loop-41851-large.mp4"
+              src="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4"
               autoPlay
               loop
               muted
