@@ -44,7 +44,7 @@ export default function VideoPlayer({
   // 15-Second Pre-roll ad integration
   const [showAd, setShowAd] = useState(true);
   const [adCountdown, setAdCountdown] = useState(15);
-  const directAdLink = import.meta.env.VITE_ADSTERRA_DIRECT_LINK || 'https://www.profitablecpmrate.com/t4jcz5607?key=d49507eaaab70065db5c82c11a83632';
+  const directAdLink = import.meta.env.VITE_ADSTERRA_DIRECT_LINK || 'https://omg10.com/4/11240379';
 
   useEffect(() => {
     if (!showAd) return;
