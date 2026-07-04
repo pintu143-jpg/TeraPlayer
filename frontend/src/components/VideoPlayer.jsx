@@ -870,9 +870,15 @@ export default function VideoPlayer({
             {/* Loop video for realistic video ad experience */}
             <video
               src="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4"
-              autoPlay
+              ref={(el) => {
+                if (el) {
+                  el.muted = true;
+                  el.play().catch((err) => {
+                    console.log('Ad video playback failed:', err);
+                  });
+                }
+              }}
               loop
-              muted
               playsInline
               className="absolute inset-0 w-full h-full object-cover rounded-2xl opacity-60 group-hover:scale-105 transition-all duration-700"
             />
