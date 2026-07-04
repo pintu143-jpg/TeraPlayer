@@ -848,6 +848,7 @@ export default function VideoPlayer({
             </div>
           </div>
         </div>
+      )}
       {/* 15-Second Pre-roll Countdown Ad Overlay */}
       {showAd && (
         <div className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-slate-950/90 backdrop-blur-md animate-fadeIn">
