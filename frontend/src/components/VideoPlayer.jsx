@@ -45,6 +45,10 @@ export default function VideoPlayer({
   const [showAd, setShowAd] = useState(true);
   const [adCountdown, setAdCountdown] = useState(15);
   const directAdLink = import.meta.env.VITE_ADSTERRA_DIRECT_LINK || 'https://omg10.com/4/11240379';
+  const [adVideoSrc] = useState(() => {
+    const videoIndex = Math.floor(Math.random() * 5) + 1;
+    return `/ad-video-${videoIndex}.mp4`;
+  });
 
   useEffect(() => {
     if (!showAd) return;
@@ -868,7 +872,7 @@ export default function VideoPlayer({
             className="w-[300px] h-[180px] md:w-[480px] md:h-[270px] bg-slate-900 border border-white/10 rounded-2xl flex flex-col items-center justify-center relative overflow-hidden shadow-2xl hover:border-violet-500/40 transition-all cursor-pointer group"
           >
             <video
-              src="/ad-video.mp4"
+              src={adVideoSrc}
               ref={(el) => {
                 if (el) {
                   el.muted = true;
