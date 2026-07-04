@@ -41,6 +41,50 @@ export default function VideoPlayer({
   const [centerFeedback, setCenterFeedback] = useState({ visible: false, type: null });
   const [skipIndicator, setSkipIndicator] = useState({ visible: false, type: 'forward' });
 
+  // 15-Second Pre-roll ad integration
+  const [showAd, setShowAd] = useState(true);
+  const [adCountdown, setAdCountdown] = useState(15);
+  const directAdLink = import.meta.env.VITE_ADSTERRA_DIRECT_LINK || 'https://www.profitablecpmrate.com/t4jcz5607?key=d49507eaaab70065db5c82c11a83632';
+
+  useEffect(() => {
+    if (!showAd) return;
+    const interval = setInterval(() => {
+      setAdCountdown((prev) => {
+        if (prev <= 1) {
+          clearInterval(interval);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [showAd]);
+
+  useEffect(() => {
+    const video = videoRef.current;
+    if (video && showAd) {
+      video.pause();
+      setIsPlaying(false);
+    }
+  }, [showAd, isPlaying]);
+
+  const handleAdClick = () => {
+    if (directAdLink) {
+      window.open(directAdLink, '_blank');
+    }
+  };
+
+  const handleSkipAd = () => {
+    setShowAd(false);
+    if (videoRef.current) {
+      videoRef.current.play().then(() => {
+        setIsPlaying(true);
+      }).catch((e) => {
+        console.warn('Playback resume failed:', e);
+      });
+    }
+  };
+
   const triggerCenterFeedback = (iconType) => {
     setCenterFeedback({ visible: true, type: iconType });
     setTimeout(() => {
@@ -802,6 +846,60 @@ export default function VideoPlayer({
                 <span className="bg-white/10 px-2 py-0.5 rounded text-white font-mono">P</span>
               </div>
             </div>
+          </div>
+        </div>
+      {/* 15-Second Pre-roll Countdown Ad Overlay */}
+      {showAd && (
+        <div className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-slate-950/90 backdrop-blur-md animate-fadeIn">
+          {/* Header */}
+          <div className="text-center mb-6 px-4">
+            <span className="px-2.5 py-1 rounded bg-amber-500/10 border border-amber-500/20 text-amber-400 font-bold text-xs uppercase tracking-wider">
+              Sponsored Advertisement
+            </span>
+            <h3 className="text-white text-base font-semibold mt-3">
+              Please wait while your video stream loads...
+            </h3>
+          </div>
+
+          {/* Ad Container Box */}
+          <div 
+            onClick={handleAdClick}
+            className="w-[300px] h-[250px] bg-slate-900 border border-white/10 rounded-2xl flex flex-col items-center justify-center relative overflow-hidden shadow-2xl hover:border-violet-500/30 transition-all cursor-pointer group"
+          >
+            <div className="flex flex-col items-center justify-center p-6 text-center">
+              <Tv className="h-12 w-12 text-violet-500 animate-pulse mb-3" />
+              <span className="text-sm font-bold text-white group-hover:text-violet-400 transition-colors">
+                Click here to visit our sponsor
+              </span>
+              <span className="text-xs text-slate-400 mt-2">
+                Supporting our site helps keep streaming free!
+              </span>
+            </div>
+            
+            {/* Click overlay */}
+            <div className="absolute inset-0 bg-transparent" />
+          </div>
+
+          {/* Timer / Skip Button */}
+          <div className="mt-8">
+            <button
+              disabled={adCountdown > 0}
+              onClick={handleSkipAd}
+              className={`px-6 py-2.5 rounded-xl font-semibold text-sm flex items-center gap-2 transition-all ${
+                adCountdown > 0 
+                  ? 'bg-slate-800 text-slate-500 border border-slate-700/50 cursor-not-allowed'
+                  : 'bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white shadow-lg shadow-violet-500/25 active:scale-95'
+              }`}
+            >
+              {adCountdown > 0 ? (
+                <span>Skip Advertisement in {adCountdown}s</span>
+              ) : (
+                <>
+                  <span>Skip Ad & Play Video</span>
+                  <Play className="h-4 w-4 fill-white" />
+                </>
+              )}
+            </button>
           </div>
         </div>
       )}
