@@ -867,9 +867,8 @@ export default function VideoPlayer({
             onClick={handleAdClick}
             className="w-[300px] h-[180px] md:w-[480px] md:h-[270px] bg-slate-900 border border-white/10 rounded-2xl flex flex-col items-center justify-center relative overflow-hidden shadow-2xl hover:border-violet-500/40 transition-all cursor-pointer group"
           >
-            {/* Loop video for realistic video ad experience */}
             <video
-              src="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4"
+              src="/ad-video.mp4"
               ref={(el) => {
                 if (el) {
                   el.muted = true;
