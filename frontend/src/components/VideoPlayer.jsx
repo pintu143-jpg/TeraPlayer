@@ -48,11 +48,11 @@ export default function VideoPlayer({
   const [adVideoSrc, setAdVideoSrc] = useState(() => {
     const videoIndex = Math.floor(Math.random() * 5);
     const cdnVideos = [
-      'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',
-      'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4',
-      'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4',
-      'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4',
-      'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerMeltdowns.mp4'
+      'https://www.w3schools.com/html/mov_bbb.mp4',
+      'https://www.w3schools.com/html/movie.mp4',
+      'https://www.w3schools.com/bootstrap/movie.mp4',
+      'https://media.w3.org/2010/05/sintel/trailer_hd.mp4',
+      'https://www.w3schools.com/html/mov_bbb.mp4'
     ];
     return cdnVideos[videoIndex];
   });
