@@ -719,6 +719,29 @@ app.delete('/api/downloads/:filename', (req, res) => {
   }
 });
 
+// API: VAST XML Proxy to bypass frontend CORS restrictions
+app.get('/api/proxy-vast', async (req, res) => {
+  const { url } = req.query;
+  if (!url) {
+    return res.status(400).send('URL query parameter is required');
+  }
+
+  try {
+    const response = await axios.get(url, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Accept': 'application/xml, text/xml, */*'
+      },
+      timeout: 10000
+    });
+    res.set('Content-Type', 'text/xml');
+    res.send(response.data);
+  } catch (err) {
+    console.warn('[VAST Proxy Error] Failed to proxy VAST URL:', err.message);
+    res.status(500).send('Failed to proxy VAST feed: ' + err.message);
+  }
+});
+
 // Initialize server after verifying/installing yt-dlp
 ensureYtdlp()
   .then(() => {

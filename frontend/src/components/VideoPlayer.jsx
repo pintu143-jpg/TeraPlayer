@@ -55,7 +55,11 @@ export default function VideoPlayer({
     const vastTagUrl = import.meta.env.VITE_VAST_TAG_URL || 'https://s.magsrv.com/v1/vast.php?idz=5967332&ex_av=name';
     if (!vastTagUrl) return;
 
-    fetch(vastTagUrl)
+    const apiBase = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+      ? 'http://localhost:5000'
+      : 'https://api.teraplayer.xyz';
+
+    fetch(`${apiBase}/api/proxy-vast?url=${encodeURIComponent(vastTagUrl)}`)
       .then((response) => response.text())
       .then((xmlText) => {
         const parser = new DOMParser();
