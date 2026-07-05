@@ -42,7 +42,7 @@ export default function VideoPlayer({
   const [skipIndicator, setSkipIndicator] = useState({ visible: false, type: 'forward' });
 
   // 15-Second Pre-roll ad integration
-  const [showAd, setShowAd] = useState(true);
+  const [showAd, setShowAd] = useState(false);
   const [adCountdown, setAdCountdown] = useState(15);
   const directAdLink = import.meta.env.VITE_ADSTERRA_DIRECT_LINK || 'https://omg10.com/4/11240379';
   const [adVideoSrc, setAdVideoSrc] = useState(() => {
