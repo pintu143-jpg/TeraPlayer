@@ -50,7 +50,7 @@ export default function VideoPlayer({
     return `/ad-video-${videoIndex}.mp4`;
   });
 
-  // Dynamic VAST XML Video Ad Tag Parser
+  // Dynamic VAST XML Video Ad Tag Parser (with Wrapper Redirection support)
   useEffect(() => {
     const vastTagUrl = import.meta.env.VITE_VAST_TAG_URL || 'https://s.magsrv.com/v1/vast.php?idz=5967332&ex_av=name';
     if (!vastTagUrl) return;
@@ -59,29 +59,53 @@ export default function VideoPlayer({
       ? 'http://localhost:5000'
       : 'https://api.teraplayer.xyz';
 
-    fetch(`${apiBase}/api/proxy-vast?url=${encodeURIComponent(vastTagUrl)}`)
-      .then((response) => response.text())
-      .then((xmlText) => {
-        const parser = new DOMParser();
-        const xmlDoc = parser.parseFromString(xmlText, 'text/xml');
-        const mediaFiles = xmlDoc.getElementsByTagName('MediaFile');
-        let mp4Url = null;
-        for (let i = 0; i < mediaFiles.length; i++) {
-          const type = mediaFiles[i].getAttribute('type');
-          const urlText = mediaFiles[i].textContent.trim();
-          if (type === 'video/mp4' && urlText) {
-            mp4Url = urlText;
-            break;
+    const loadVast = (url, depth = 0) => {
+      if (depth > 5) {
+        console.warn('[VAST] Redirection depth limit reached');
+        return;
+      }
+
+      console.log(`[VAST] Fetching level ${depth}: ${url}`);
+      fetch(`${apiBase}/api/proxy-vast?url=${encodeURIComponent(url)}`)
+        .then((response) => response.text())
+        .then((xmlText) => {
+          const parser = new DOMParser();
+          const xmlDoc = parser.parseFromString(xmlText, 'text/xml');
+          
+          // Check if VAST is a Wrapper and has another VASTAdTagURI link
+          const wrapperTag = xmlDoc.getElementsByTagName('VASTAdTagURI')[0];
+          if (wrapperTag && wrapperTag.textContent.trim()) {
+            const redirectUrl = wrapperTag.textContent.trim();
+            console.log('[VAST] Wrapper redirect detected. Following:', redirectUrl);
+            loadVast(redirectUrl, depth + 1);
+            return;
           }
-        }
-        if (mp4Url) {
-          console.log('Successfully loaded VAST video ad URL:', mp4Url);
-          setAdVideoSrc(mp4Url);
-        }
-      })
-      .catch((err) => {
-        console.warn('VAST ad load failed, using local fallback:', err);
-      });
+
+          // Otherwise, find linear media files
+          const mediaFiles = xmlDoc.getElementsByTagName('MediaFile');
+          let mp4Url = null;
+          for (let i = 0; i < mediaFiles.length; i++) {
+            const type = mediaFiles[i].getAttribute('type');
+            const urlText = mediaFiles[i].textContent.trim();
+            if (type === 'video/mp4' && urlText) {
+              mp4Url = urlText;
+              break;
+            }
+          }
+
+          if (mp4Url) {
+            console.log('[VAST] Successfully resolved direct MP4 ad URL:', mp4Url);
+            setAdVideoSrc(mp4Url);
+          } else {
+            console.warn('[VAST] No media files found at level:', depth);
+          }
+        })
+        .catch((err) => {
+          console.warn(`[VAST] Failed to load at level ${depth}:`, err);
+        });
+    };
+
+    loadVast(vastTagUrl);
   }, []);
 
   useEffect(() => {
