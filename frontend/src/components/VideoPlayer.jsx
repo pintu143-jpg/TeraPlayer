@@ -46,8 +46,15 @@ export default function VideoPlayer({
   const [adCountdown, setAdCountdown] = useState(15);
   const directAdLink = import.meta.env.VITE_ADSTERRA_DIRECT_LINK || 'https://omg10.com/4/11240379';
   const [adVideoSrc, setAdVideoSrc] = useState(() => {
-    const videoIndex = Math.floor(Math.random() * 5) + 1;
-    return `/ad-video-${videoIndex}.mp4`;
+    const videoIndex = Math.floor(Math.random() * 5);
+    const cdnVideos = [
+      'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',
+      'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4',
+      'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4',
+      'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4',
+      'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerMeltdowns.mp4'
+    ];
+    return cdnVideos[videoIndex];
   });
 
   // Dynamic VAST XML Video Ad Tag Parser (with Wrapper Redirection support)
@@ -945,15 +952,7 @@ export default function VideoPlayer({
               className="absolute inset-0 w-full h-full object-cover rounded-2xl opacity-60 group-hover:scale-105 transition-all duration-700"
             />
             
-            {/* Centered CTA text over video */}
-            <div className="absolute inset-0 bg-slate-950/40 hover:bg-slate-950/20 transition-all flex flex-col items-center justify-center p-6 text-center z-10">
-              <span className="bg-violet-600 text-white font-bold text-xs px-3 py-1 rounded-full uppercase tracking-wider mb-2.5 shadow-lg shadow-violet-500/30 animate-pulse">
-                Click to Open Advertisement
-              </span>
-              <span className="text-xs md:text-sm font-semibold text-white drop-shadow-md">
-                Visit our sponsor to unlock high-speed stream
-              </span>
-            </div>
+
 
             {/* Click overlay */}
             <div className="absolute inset-0 bg-transparent z-20" />
