@@ -52,7 +52,7 @@ export default function VideoPlayer({
 
   // Dynamic VAST XML Video Ad Tag Parser
   useEffect(() => {
-    const vastTagUrl = import.meta.env.VITE_VAST_TAG_URL;
+    const vastTagUrl = import.meta.env.VITE_VAST_TAG_URL || 'https://s.magsrv.com/v1/vast.php?idz=5967332&ex_av=name';
     if (!vastTagUrl) return;
 
     fetch(vastTagUrl)
