@@ -65,8 +65,8 @@ export default function VideoPlayer({
         return;
       }
 
-      console.log(`[VAST] Fetching level ${depth}: ${url}`);
-      fetch(`${apiBase}/api/proxy-vast?url=${encodeURIComponent(url)}`)
+      console.log(`[VAST] Fetching level ${depth} directly: ${url}`);
+      fetch(url)
         .then((response) => response.text())
         .then((xmlText) => {
           // Helper to extract tag contents safely (immune to XML parsing crashes on unescaped & characters)
