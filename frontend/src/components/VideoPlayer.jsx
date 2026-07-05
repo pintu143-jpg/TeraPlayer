@@ -69,30 +69,31 @@ export default function VideoPlayer({
       fetch(`${apiBase}/api/proxy-vast?url=${encodeURIComponent(url)}`)
         .then((response) => response.text())
         .then((xmlText) => {
-          const parser = new DOMParser();
-          const xmlDoc = parser.parseFromString(xmlText, 'text/xml');
-          
+          // Helper to extract tag contents safely (immune to XML parsing crashes on unescaped & characters)
+          const getTagContent = (xml, tagName) => {
+            const regex = new RegExp(`<${tagName}[^>]*>([\\s\\S]*?)<\/${tagName}>`, 'i');
+            const match = xml.match(regex);
+            if (!match) return null;
+            let content = match[1].trim();
+            if (content.includes('<![CDATA[')) {
+              const cdataMatch = content.match(/<!\[CDATA\[([\s\S]*?)\]\]>/i);
+              if (cdataMatch) {
+                content = cdataMatch[1].trim();
+              }
+            }
+            return content;
+          };
+
           // Check if VAST is a Wrapper and has another VASTAdTagURI link
-          const wrapperTag = xmlDoc.getElementsByTagName('VASTAdTagURI')[0];
-          if (wrapperTag && wrapperTag.textContent.trim()) {
-            const redirectUrl = wrapperTag.textContent.trim();
+          const redirectUrl = getTagContent(xmlText, 'VASTAdTagURI');
+          if (redirectUrl) {
             console.log('[VAST] Wrapper redirect detected. Following:', redirectUrl);
             loadVast(redirectUrl, depth + 1);
             return;
           }
 
           // Otherwise, find linear media files
-          const mediaFiles = xmlDoc.getElementsByTagName('MediaFile');
-          let mp4Url = null;
-          for (let i = 0; i < mediaFiles.length; i++) {
-            const type = mediaFiles[i].getAttribute('type');
-            const urlText = mediaFiles[i].textContent.trim();
-            if (type === 'video/mp4' && urlText) {
-              mp4Url = urlText;
-              break;
-            }
-          }
-
+          const mp4Url = getTagContent(xmlText, 'MediaFile');
           if (mp4Url) {
             console.log('[VAST] Successfully resolved direct MP4 ad URL:', mp4Url);
             setAdVideoSrc(mp4Url);
