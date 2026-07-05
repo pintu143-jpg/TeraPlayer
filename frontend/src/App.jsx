@@ -51,6 +51,51 @@ export default function App() {
     fetchDownloadsHistory();
   }, []);
 
+  // Dynamically manage Adsterra scripts to prevent banners/popunders from covering the video player
+  useEffect(() => {
+    if (activeVideo) {
+      // 1. Remove Adsterra script tags
+      const scripts = document.querySelectorAll('script[src*="effectivecpmnetwork.com"]');
+      scripts.forEach(s => s.remove());
+
+      // 2. Scan and remove any injected floating DOM banner elements
+      const bodyElements = document.body.children;
+      for (let i = bodyElements.length - 1; i >= 0; i--) {
+        const el = bodyElements[i];
+        if (el.id !== 'root' && el.tagName !== 'SCRIPT') {
+          const content = el.innerHTML || '';
+          if (
+            content.includes('effectivecpmnetwork') || 
+            content.includes('cpm') ||
+            el.style.position === 'fixed' ||
+            el.id.startsWith('ad') || 
+            el.className.includes('native')
+          ) {
+            el.remove();
+          }
+        }
+      }
+      return;
+    }
+
+    // Load Adsterra scripts dynamically on the home screen
+    const adScript1 = document.createElement('script');
+    adScript1.src = 'https://pl30184663.effectivecpmnetwork.com/d1/70/e9/d170e9b7f27de5d3e9ac6b0230a6b2b8.js';
+    adScript1.async = true;
+
+    const adScript2 = document.createElement('script');
+    adScript2.src = 'https://pl30184664.effectivecpmnetwork.com/dd/49/50/dd49507eaaab70065db5c82c11a83632.js';
+    adScript2.async = true;
+
+    document.head.appendChild(adScript1);
+    document.head.appendChild(adScript2);
+
+    return () => {
+      adScript1.remove();
+      adScript2.remove();
+    };
+  }, [activeVideo]);
+
   // Submit URL or Search Query
   const handleUrlSubmit = async (url) => {
     setIsResolving(true);
