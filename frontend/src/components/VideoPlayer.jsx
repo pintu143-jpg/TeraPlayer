@@ -45,10 +45,40 @@ export default function VideoPlayer({
   const [showAd, setShowAd] = useState(true);
   const [adCountdown, setAdCountdown] = useState(15);
   const directAdLink = import.meta.env.VITE_ADSTERRA_DIRECT_LINK || 'https://omg10.com/4/11240379';
-  const [adVideoSrc] = useState(() => {
+  const [adVideoSrc, setAdVideoSrc] = useState(() => {
     const videoIndex = Math.floor(Math.random() * 5) + 1;
     return `/ad-video-${videoIndex}.mp4`;
   });
+
+  // Dynamic VAST XML Video Ad Tag Parser
+  useEffect(() => {
+    const vastTagUrl = import.meta.env.VITE_VAST_TAG_URL;
+    if (!vastTagUrl) return;
+
+    fetch(vastTagUrl)
+      .then((response) => response.text())
+      .then((xmlText) => {
+        const parser = new DOMParser();
+        const xmlDoc = parser.parseFromString(xmlText, 'text/xml');
+        const mediaFiles = xmlDoc.getElementsByTagName('MediaFile');
+        let mp4Url = null;
+        for (let i = 0; i < mediaFiles.length; i++) {
+          const type = mediaFiles[i].getAttribute('type');
+          const urlText = mediaFiles[i].textContent.trim();
+          if (type === 'video/mp4' && urlText) {
+            mp4Url = urlText;
+            break;
+          }
+        }
+        if (mp4Url) {
+          console.log('Successfully loaded VAST video ad URL:', mp4Url);
+          setAdVideoSrc(mp4Url);
+        }
+      })
+      .catch((err) => {
+        console.warn('VAST ad load failed, using local fallback:', err);
+      });
+  }, []);
 
   useEffect(() => {
     if (!showAd) return;
