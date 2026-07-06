@@ -4,6 +4,7 @@ import UrlInput from './components/UrlInput';
 import VideoPlayer from './components/VideoPlayer';
 import PlatformCard from './components/PlatformCard';
 import LegalModals from './components/LegalModals';
+import AdBanner from './components/AdBanner';
 import { 
   AlertCircle, Info, Download, Trash2, Play, Search, Video, 
   CheckCircle2, Loader2, FolderDown, ArrowLeft, RefreshCw,
@@ -337,6 +338,9 @@ export default function App() {
               <div className="flex items-center gap-2"><Tv className="h-4 w-4 text-violet-500" /><span>HD/4K Playback</span></div>
               <div className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-violet-500" /><span>100% Free & Safe</span></div>
             </div>
+            
+            {/* 300x250 Banner Ad */}
+            <AdBanner />
           </div>
         )}
 
@@ -372,7 +376,7 @@ export default function App() {
                 <div>
                   <h3 className="text-base font-bold text-slate-800 dark:text-white line-clamp-1">{activeVideo.title}</h3>
                   <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 uppercase tracking-wider font-semibold">
-                    Source: <span className="text-violet-500 dark:text-violet-400 font-bold">{activeVideo.platform}</span> &bull; License: <span className="text-emerald-500 dark:text-emerald-400 font-bold">CC0 Free Stock</span>
+                    Source: <span className="text-violet-500 dark:text-violet-400 font-bold">{activeVideo.platform}</span> &bull; License: <span className="text-emerald-500 dark:text-emerald-400 font-bold">{activeVideo.platform === 'stock' ? 'CC0 Free Stock' : 'Personal Use Only'}</span>
                   </p>
                 </div>
                 {activeVideo.platform !== 'local' && (
@@ -400,6 +404,9 @@ export default function App() {
                   </div>
                 )}
               </div>
+
+              {/* 300x250 Banner Ad below player */}
+              <AdBanner />
 
               {/* Stream / Search Bar below player */}
               <div className="w-full mt-4">

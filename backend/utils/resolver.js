@@ -18,7 +18,7 @@ function extractGDriveId(url) {
 }
 
 function extractDiskwalaId(url) {
-  const match = url.match(/\/app\/([a-zA-Z0-9]+)/);
+  const match = url.match(/\/app\/(?:embed\/)?([a-zA-Z0-9]+)/);
   return match ? match[1] : null;
 }
 
@@ -207,17 +207,21 @@ async function resolveViaCustomApis(url, platform) {
   if (platform === 'diskwala') {
     try {
       let token = process.env.DISKWALA_TOKEN;
-      if (!token && process.env.DISKWALA_API_URL) {
+      let baseUrl = 'https://thediskwala.com/api/diskwala';
+
+      if (process.env.DISKWALA_API_URL) {
+        // Extract token and base URL from the configured API URL
         const match = process.env.DISKWALA_API_URL.match(/token=([a-zA-Z0-9_-]+)/);
         if (match) token = match[1];
+        baseUrl = process.env.DISKWALA_API_URL.split('?')[0];
       }
 
       if (!token) {
         return { success: false, error: 'No DiskWala API token configured in environment.' };
       }
 
-      console.log('Attempting custom DiskWala API resolver at thediskwala.com...');
-      const targetUrl = `https://thediskwala.com/api/diskwala?url=${encodeURIComponent(url)}`;
+      console.log(`Attempting custom DiskWala API resolver at ${baseUrl}...`);
+      const targetUrl = `${baseUrl}?url=${encodeURIComponent(url)}`;
       const response = await axios.get(targetUrl, {
         headers: {
           'Authorization': `Bearer ${token}`

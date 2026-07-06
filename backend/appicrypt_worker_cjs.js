@@ -1,10 +1,51 @@
 
-const { parentPort } = require('node:worker_threads');
+const { parentPort, MessageChannel, MessagePort } = require('node:worker_threads');
 const fs = require('fs');
 const path = require('path');
 
+// Override addEventListener and onmessage in worker to dispatch events asynchronously
+const originalAddEventListener = MessagePort.prototype.addEventListener;
+MessagePort.prototype.addEventListener = function(event, listener, options) {
+  if (event === 'message') {
+    const asyncListener = (e) => {
+      setImmediate(() => {
+        try {
+          listener(e);
+        } catch (err) {
+          console.error('[Worker Async Port Listener Error]', err);
+        }
+      });
+    };
+    return originalAddEventListener.call(this, event, asyncListener, options);
+  }
+  return originalAddEventListener.call(this, event, listener, options);
+};
+
+Object.defineProperty(MessagePort.prototype, 'onmessage', {
+  set(listener) {
+    if (listener) {
+      const asyncListener = (e) => {
+        setImmediate(() => {
+          try {
+            listener(e);
+          } catch (err) {
+            console.error('[Worker Async Port onmessage Error]', err);
+          }
+        });
+      };
+      originalAddEventListener.call(this, 'message', asyncListener);
+    }
+  },
+  configurable: true,
+  enumerable: true
+});
+
 // 1. Mock global.self for WASM worker bindings
 global.self = Object.create(global);
+global.MessageChannel = MessageChannel;
+global.MessagePort = MessagePort;
+global.self.MessageChannel = MessageChannel;
+global.self.MessagePort = MessagePort;
 global.self.self = global.self;
 
 const eventListeners = {};
@@ -18,12 +59,17 @@ global.self.postMessage = (msg) => {
 };
 
 // Listen to messages from the parent thread and forward them to self handlers
-parentPort.on('message', (msg) => {
-  if (global.self.onmessage) {
-    global.self.onmessage({ data: msg, ports: [] });
+parentPort.on('message', (data) => {
+  let msg = data;
+  let ports = [];
+  if (data && data._isTransferred) {
+    msg = data.msg;
+    ports = [data.port];
   }
-  if (eventListeners['message']) {
-    eventListeners['message'].forEach(cb => cb({ data: msg, ports: [] }));
+  if (global.self.onmessage) {
+    global.self.onmessage({ data: msg, ports });
+  } else if (eventListeners['message']) {
+    eventListeners['message'].forEach(cb => cb({ data: msg, ports }));
   }
 });
 

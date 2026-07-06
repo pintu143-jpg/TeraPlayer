@@ -451,6 +451,7 @@ app.post('/api/resolve', async (req, res) => {
         });
       }
 
+
       console.log(`Automated DiskWala fallback resolution failed: could not parse ID. Falling back to manual instructions.`);
       return res.json({
         success: false,
@@ -549,7 +550,7 @@ app.post('/api/diskwala/secure-resolve', async (req, res) => {
         'Content-Type': 'application/json',
         'Origin': 'https://www.diskwala.com',
         'Referer': 'https://www.diskwala.com/',
-        'Appicrypt-Ts': ts,
+        'Appicrypt-ts': ts,
         'Appicrypt': cryptogram
       },
       timeout: 15000
@@ -575,6 +576,9 @@ app.post('/api/diskwala/secure-resolve', async (req, res) => {
     }
   } catch (err) {
     console.error('[DiskWala Secure Resolve] Failed:', err.message);
+    if (err.response) {
+      console.error('[DiskWala Secure Resolve] Error Response Data:', err.response.data);
+    }
     return res.status(500).json({
       success: false,
       message: 'Failed to resolve secure DiskWala link',
